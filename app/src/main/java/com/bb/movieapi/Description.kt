@@ -9,7 +9,12 @@ import android.view.View
 import android.view.Window
 import android.widget.Button
 import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.bb.movieapi.API.Helper
+import com.bb.movieapi.API.Repository
+import com.bb.movieapi.API.Service
+import com.bb.movieapi.API.poster_baseUrl
 import com.bb.movieapi.Data.Description
 import com.bb.movieapi.Data.FilePath
 import com.bb.movieapi.Data.Images
@@ -30,6 +35,7 @@ import retrofit2.Response
 class Description : AppCompatActivity() {
     lateinit var id:String
     lateinit var imageSlider:ImageSlider
+    lateinit var viewModel:DescViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,75 +43,44 @@ class Description : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_description)
 
-        id=intent.extras.getString("id").toString()
+        id=intent.extras!!.getString("id").toString()
         imageSlider=findViewById(R.id.imageSlider)
 
-        lifecycleScope.launch {
-            getImages()
-            getDescription()
-            getMovieKey()
-        }
-    }
 
-    suspend fun getImages(){
-        lifecycleScope.launch {
-            var images: Call<Images> =ApiService.apiInterface.getImages(id)
-            images.enqueue(object:retrofit2.Callback<Images>{
-                override fun onResponse(call: Call<Images>, response: Response<Images>) {
-                    var pathList:List<FilePath> = ArrayList()
-                    pathList= response.body()?.backdrops!!
-                    var imageList=ArrayList<String>()
-                    pathList.forEach {
-                        imageList.add("${poster_baseUrl}"+it.file_path)
-                    }
-                    if(imageList.size>5){
-                        imageList= imageList.slice(0..4).toList() as ArrayList<String>
-                    }
-                    imageSlider.adapter= SliderAdapter(this@Description,
-                        GlideImageLoaderFactory(),
-                        imageUrls = imageList
-                    )
-                    Log.i("images",":${imageList.toString()}")
-                }
+        var service=Helper.getInstance().create(Service::class.java)
+        var repository=Repository(service,applicationContext)
+        viewModel=ViewModelProvider(this,DescViewModelFactory(repository,id)).get(DescViewModel::class.java)
 
-                override fun onFailure(call: Call<Images>, t: Throwable) {
-                    Log.i("status","Failed")
-                }
+        viewModel.imageList.observe(this,{
+            var pathList:List<FilePath> = ArrayList()
+            pathList= it.backdrops
+            var imageList=ArrayList<String>()
+            pathList.forEach {
+                imageList.add("${poster_baseUrl}"+it.file_path)
+            }
+            if(imageList.size>5){
+                imageList= imageList.slice(0..4).toList() as ArrayList<String>
+            }
+            imageSlider.adapter= SliderAdapter(this@Description,
+                GlideImageLoaderFactory(),
+                imageUrls = imageList
+            )
+        })
 
-            })
-        }
-    }
-
-    suspend fun getDescription(){
-        lifecycleScope.launch{
-            var description:Call<Description> = ApiService.apiInterface.getDescription(id)
-            description.enqueue(object:Callback<Description>{
-                override fun onResponse(call: Call<Description>, response: Response<Description>) {
-                    Log.i("description","${response.body()?.original_title}")
-                    findViewById<TextView>(R.id.title).text=response.body()?.original_title
-                    findViewById<TextView>(R.id.date).text=response.body()?.release_date
-                    findViewById<TextView>(R.id.overview).text=response.body()?.overview
+        viewModel.desc.observe(this,{
+                    findViewById<TextView>(R.id.title).text=it.original_title
+                    findViewById<TextView>(R.id.date).text=it.release_date
+                    findViewById<TextView>(R.id.overview).text=it.overview
                     var genres:String=""
-                    response.body()?.genres?.forEach {
+                    it.genres?.forEach {
                         genres+=it.name+", "
                     }
                     genres= genres.substring(0,genres.length-2)
                     findViewById<TextView>(R.id.genres).text=genres
-                }
+        })
 
-                override fun onFailure(call: Call<Description>, t: Throwable) {
-                    Log.i("description","Failed")
-                }
-            })
-        }
-    }
-
-    suspend fun getMovieKey(){
-        lifecycleScope.launch {
-            var movieKey:Call<MovieKey> = ApiService.apiInterface.getMovieKey(id)
-            movieKey.enqueue(object:Callback<MovieKey>{
-                override fun onResponse(call: Call<MovieKey>, response: Response<MovieKey>) {
-                    var keyList=response.body()?.results
+        viewModel.key.observe(this,{
+            var keyList=it.results
                     var key=keyList?.get(0)!!.key
 
                     findViewById<Button>(R.id.watchBtn).setOnClickListener {
@@ -114,15 +89,7 @@ class Description : AppCompatActivity() {
                         startActivity(intent)
                         Log.i("MovieKey", key.toString())
                     }
-                }
+        })
+    }
 
-                override fun onFailure(call: Call<MovieKey>, t: Throwable) {
-                    Log.i("MovieKey","Failed")
-                }
-            })
-        }
-    }
-    companion object {
-        private const val SLIDE_NUMBER = 10
-    }
 }

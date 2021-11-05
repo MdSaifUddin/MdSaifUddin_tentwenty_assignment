@@ -31,7 +31,7 @@ class VideoPlayer : YouTubeBaseActivity() {
                     p1: YouTubePlayer?,
                     p2: Boolean
                 ) {
-                    p1?.loadVideo(intent.extras.getString("id"), 1)
+                    p1?.loadVideo(intent.extras!!.getString("id"), 1)
                     p1?.setFullscreen(true)
                 }
 
@@ -39,7 +39,7 @@ class VideoPlayer : YouTubeBaseActivity() {
                     p0: YouTubePlayer.Provider?,
                     p1: YouTubeInitializationResult?
                 ) {
-                    Log.i("youtube", "initialized Failed")
+                    Log.i("youtube", "initialized Failed - ${p1?.name}")
                 }
 
 

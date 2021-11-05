@@ -10,10 +10,11 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bb.movieapi.*
+import com.bb.movieapi.API.poster_baseUrl
 import com.bb.movieapi.Data.MovieItem
 import com.bumptech.glide.Glide
 
-class ListAdapter(val list:List<MovieItem>, val context: Context): RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
+class ListAdapter(val list:ArrayList<MovieItem>, val context: Context): RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         var view=LayoutInflater.from(context).inflate(R.layout.movie_item,parent,false)

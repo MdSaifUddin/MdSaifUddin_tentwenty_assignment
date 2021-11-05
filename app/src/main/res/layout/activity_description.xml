@@ -27,6 +27,7 @@
                 android:layout_height="wrap_content"
                 android:text="Movie Title"
                 android:textColor="#000"
+                android:textStyle="bold"
                 android:textSize="25dp"/>
             <Button
                 android:id="@+id/watchBtn"

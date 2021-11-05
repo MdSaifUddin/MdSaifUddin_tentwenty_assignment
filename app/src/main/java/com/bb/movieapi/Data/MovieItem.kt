@@ -1,5 +1,7 @@
 package com.bb.movieapi.Data
 
+import androidx.room.Entity
+
 data class MovieItem(
     val poster_path: String,
     val original_title: String,
