@@ -53,8 +53,6 @@ class MainActivity : AppCompatActivity() {
 
                 is com.bb.movieapi.API.Response.ErrMsg->{
                     GlobalScope.launch {
-//                        delay(3000L)
-
                         var list: ArrayList<MovieData> = repository.getOfflineData()
                         withContext(Dispatchers.Main){
                             var adapter= DiffUtilOffline()
